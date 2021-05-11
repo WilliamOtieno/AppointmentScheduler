@@ -58,7 +58,7 @@ def register(request):
 
         try:
             user = client.query(q.get(q.match(q.index("users_index"), username)))
-            messages.add_message(request, messages.INFO, 'User with that username already exists.')
+            messages.add_message(request, messages.INFO, 'User with that username already exists.', "danger")
             return redirect("core:register")
         except:
             user = client.query(q.create(q.collection("users"), {
