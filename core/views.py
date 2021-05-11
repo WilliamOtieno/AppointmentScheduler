@@ -18,6 +18,24 @@ indexes =  client.query(q.paginate(q.indexes()))
 # Create your views here.
 
 def login(request):
+    if request.method == "POST":
+        username = request.POST.get("username").strip().lower()
+        password = request.POST.get("password")
+
+        try:
+            user = client.query(q.get(q.match(q.index("users_index"), username)))
+            if hashlib.sha512(password.encode()).hexdigest() == user["data"]["password"]:
+                request.session["user"] = {
+                    "id": user["ref"].id(),
+                    "username": user["data"]["username"]
+                }
+                return redirect("core:dashboard")
+            else:
+                raise Exception()
+        except:
+            messages.add_message(request, messages.INFO, 'Invalid credentials! Please try again.')
+            return redirect("core:login")
+
     return render(request, "login.html")
     
 def create_appointment(request):
