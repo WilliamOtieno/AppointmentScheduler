@@ -1,5 +1,19 @@
-from django.http import request
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.core.paginator import Paginator
+from django.http import HttpResponseNotFound
+from faunadb import query as q
+import pytz
+from faunadb.objects import Ref
+from faunadb.client import FaunaClient
+import hashlib
+import datetime
+import os
+
+client = FaunaClient(secret=os.environ(FAUNA_SECRET_KEY))
+indexes =  client.query(q.paginate(q.indexes()))
+
+
 
 # Create your views here.
 
@@ -20,4 +34,3 @@ def all_appointment(request):
 
 def register(request):
     return render(request, "register.html")
-    
