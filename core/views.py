@@ -33,4 +33,25 @@ def all_appointment(request):
     return render(request, "all-appointments.html")
 
 def register(request):
+    if request.method == "POST":
+        username = request.POST.get("username").strip().lower()
+        email = request.POST.get("email").strip().lower()
+        password = request.POST.get("password")
+
+        try:
+            user = client.query(q.get(q.match(q.index("users_index"), username)))
+            messages.add_message(request, messages.INFO, 'User with that username already exists.')
+            return redirect("core:register")
+        except:
+            user = client.query(q.create(q.collection("users"), {
+                "data": {
+                    "username": username,
+                    "email": email,
+                    "password": hashlib.sha512(password.encode()).hexdigest(),
+                    "date": datetime.datetime.now(pytz.UTC)
+                }
+            }))
+            messages.add_message(request, messages.INFO, 'Registration successful.')
+            return redirect("core:login")
+
     return render(request, "register.html")
