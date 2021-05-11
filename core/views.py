@@ -33,7 +33,7 @@ def login(request):
             else:
                 raise Exception()
         except:
-            messages.add_message(request, messages.INFO, 'Invalid credentials! Please try again.')
+            messages.add_message(request, messages.INFO, 'Invalid credentials! Please try again.', "danger")
             return redirect("core:login")
 
     return render(request, "login.html")
@@ -58,7 +58,7 @@ def register(request):
 
         try:
             user = client.query(q.get(q.match(q.index("users_index"), username)))
-            messages.add_message(request, messages.INFO, 'User with that username already exists.', "danger")
+            messages.add_message(request, messages.INFO, 'User with that username already exists.')
             return redirect("core:register")
         except:
             user = client.query(q.create(q.collection("users"), {
