@@ -8,9 +8,8 @@ from faunadb.objects import Ref
 from faunadb.client import FaunaClient
 import hashlib
 import datetime
-import os
 
-client = FaunaClient(secret=os.environ(FAUNA_SECRET_KEY))
+client = FaunaClient(secret="fnAEI-KVRFACATkKj3J1RYQFGACH4eDzYqBCmuJM")
 indexes =  client.query(q.paginate(q.indexes()))
 
 
@@ -73,52 +72,58 @@ def dashboard(request):
 
 def today_appointment(request):
     if "user" in request.session:
-        appointments = client.query(q.paginate(q.match(q.index("events_today_paginate"), request.session["user"]["username"], str(datetime.date.today()))))["data"]
-        appointments_count = len(appointments)
-        page_number = int(request.GET.get('page', 1))
-        appointment = client.query(q.get(q.ref(q.collection("Events"), appointments[page_number - 1].id())))["data"]
+        try:
+            appointments = client.query(q.paginate(q.match(q.index("events_today_paginate"), request.session["user"]["username"], str(datetime.date.today()))))["data"]
+            appointments_count = len(appointments)
+            page_number = int(request.GET.get('page', 1))
+            appointment = client.query(q.get(q.ref(q.collection("Events"), appointments[page_number - 1].id())))["data"]
 
-        if request.GET.get("complete"):
-            client.query(q.update(q.ref(q.collection("Events"), appointments[page_number - 1].id()), {
-                "data": {
-                    "status": "True"
-                }
-            }))["data"]
-            return redirect("core:today-appointment")
+            if request.GET.get("complete"):
+                client.query(q.update(q.ref(q.collection("Events"), appointments[page_number - 1].id()), {
+                    "data": {
+                        "status": "True"
+                    }
+                }))["data"]
+                return redirect("core:today-appointment")
 
-        if request.GET.get("delete"):
-            client.query(q.delete(q.ref(q.collection("Events"), appointments[page_number - 1].id())))
-            return redirect("core:today-appointment")
+            if request.GET.get("delete"):
+                client.query(q.delete(q.ref(q.collection("Events"), appointments[page_number - 1].id())))
+                return redirect("core:today-appointment")
 
-        context = {
-            "count": appointments_count,
-            "appointment": appointment,
-            "page_num": page_number,
-            "next_page": min(appointments_count, page_number + 1),
-            "prev_page": max(1, page_number - 1)
-        }
-        return render(request, "today-appointment.html", context)
+            context = {
+                "count": appointments_count,
+                "appointment": appointment,
+                "page_num": page_number,
+                "next_page": min(appointments_count, page_number + 1),
+                "prev_page": max(1, page_number - 1)
+            }
+            return render(request, "today-appointment.html", context)
+        except:
+            return render(request, "today-appointment.html")
     else:
         return HttpResponseNotFound("Page not found.")
     
 
 def all_appointment(request):
     if "user" in request.session:
-        appointments = client.query(q.paginate(q.match(q.index("events_index_paginate"), request.session["user"]["username"])))["data"]
-        appointments_count = len(appointments)
-        page_number = int(request.GET.get('page', 1))
-        appointment = client.query(q.get(q.ref(q.collection("Events"), appointments[page_number - 1].id())))
-        if request.GET.get("delete"):
-            client.query(q.delete(q.ref(q.collection("Events"), appointments[page_number - 1].id())))
-            return redirect("core:all-appointment")
-        context = {
-            "count": appointments_count,
-            "appointment": appointment,
-            "page_num": page_number,
-            "next_page": min(appointments_count, page_number + 1),
-            "prev_page": max(1, page_number - 1)
-        }
-        return render(request, "all-appointments.html", context)
+        try:
+            appointments = client.query(q.paginate(q.match(q.index("events_index_paginate"), request.session["user"]["username"])))["data"]
+            appointments_count = len(appointments)
+            page_number = int(request.GET.get('page', 1))
+            appointment = client.query(q.get(q.ref(q.collection("Events"), appointments[page_number - 1].id())))
+            if request.GET.get("delete"):
+                client.query(q.delete(q.ref(q.collection("Events"), appointments[page_number - 1].id())))
+                return redirect("core:all-appointment")
+            context = {
+                "count": appointments_count,
+                "appointment": appointment,
+                "page_num": page_number,
+                "next_page": min(appointments_count, page_number + 1),
+                "prev_page": max(1, page_number - 1)
+            }
+            return render(request, "all-appointments.html", context)
+        except:
+            return render(request, "all-appointments.html")
     else:
         return HttpResponseNotFound("Page not found!")
 
