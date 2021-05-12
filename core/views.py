@@ -141,7 +141,7 @@ def register(request):
             messages.add_message(request, messages.INFO, 'User with that username already exists.')
             return redirect("core:register")
         except:
-            user = client.query(q.create(q.collection("users"), {
+            user = client.query(q.create(q.collection("Users"), {
                 "data": {
                     "username": username,
                     "email": email,
