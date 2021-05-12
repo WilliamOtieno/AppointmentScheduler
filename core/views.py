@@ -75,8 +75,21 @@ def today_appointment(request):
     if "user" in request.session:
         appointments = client.query(q.paginate(q.match(q.index("events_today_paginate"), request.session["user"]["username"], str(datetime.date.today()))))["data"]
         appointments_count = len(appointments)
-        page_number = int(request.GET.get('Page', 1))
+        page_number = int(request.GET.get('page', 1))
         appointment = client.query(q.get(q.ref(q.collection("Events"), appointments[page_number - 1].id())))["data"]
+
+        if request.GET.get("complete"):
+            client.query(q.update(q.ref(q.collection("Events"), appointments[page_number - 1].id()), {
+                "data": {
+                    "status": "True"
+                }
+            }))["data"]
+            return redirect("core:today-appointment")
+
+        if request.GET.get("delete"):
+            client.query(q.delete(q.ref(q.collection("Events"), appointments[page_number - 1].id())))
+            return redirect("core:today-appointment")
+
         context = {
             "count": appointments_count,
             "appointment": appointment,
@@ -84,12 +97,32 @@ def today_appointment(request):
             "next_page": min(appointments_count, page_number + 1),
             "prev_page": max(1, page_number - 1)
         }
-        return render(request, "today-appointment.html")
+        return render(request, "today-appointment.html", context)
     else:
         return HttpResponseNotFound("Page not found.")
     
 
 def all_appointment(request):
+    if "user" in request.session:
+        appointments = client.query(q.paginate(q.match(q.index("events_index_paginate"), request.session["user"]["username"])))["data"]
+        appointments_count = len(appointments)
+        page_number = int(request.GET.get('page', 1))
+        appointment = client.query(q.get(q.ref(q.collection("Events"), appointments[page_number - 1].id())))
+        if request.GET.get("delete"):
+            client.query(q.delete(q.ref(q.collection("Events"), appointments[page_number - 1].id())))
+            return redirect("core:all-appointment")
+        context = {
+            "count": appointments_count,
+            "appointment": appointment,
+            "page_num": page_number,
+            "next_page": min(appointments_count, page_number + 1),
+            "prev_page": max(1, page_number - 1)
+        }
+        return render(request, "all-appointments.html", context)
+    else:
+        return HttpResponseNotFound("Page not found!")
+
+
     return render(request, "all-appointments.html")
 
 def register(request):
