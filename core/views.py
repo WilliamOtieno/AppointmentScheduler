@@ -8,8 +8,9 @@ from faunadb.objects import Ref
 from faunadb.client import FaunaClient
 import hashlib
 import datetime
+import os
 
-client = FaunaClient(secret="fnAEI-KVRFACATkKj3J1RYQFGACH4eDzYqBCmuJM")
+client = FaunaClient(secret="your_secret_key")
 indexes =  client.query(q.paginate(q.indexes()))
 
 
