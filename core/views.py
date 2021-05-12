@@ -39,12 +39,43 @@ def login(request):
     return render(request, "login.html")
     
 def create_appointment(request):
-    return render(request, "appoint/create-appointment.html")
+    if "user" in request.session:
+        if request.method == "POST":
+            name = request.POST.get("name")
+            description = request.POST.get("description")
+            time = request.POST.get("time")
+            date = request.POST.get("date")
+            try:
+                user = client.query(q.get(q.match(q.index("events_index"), date, time)))
+                messages.add_message(request, messages.INFO, 'An Event is already scheduled for the specified time.')
+                return redirect("core:create-appointment")
+            except:
+                user = client.query(q.create(q.collection("Events"), {
+                    "data": {
+                        "name": name,
+                        "description": description,
+                        "time": time,
+                        "date": date,
+                        "user": request.session["user"]["username"],
+                        "status": 'False',
+                    }
+                }))
+                messages.add_message(request, messages.INFO, 'Appointment Scheduled Successfully.')
+                return redirect("core:create-appointment")
+        return render(request, "appoint/create-appointment.html")
+    else:
+        return HttpResponseNotFound("Page not found! Check the url.")
+
+    
         
 def dashboard(request):
     return render(request, "index.html")
 
 def today_appointment(request):
+    if "user" in request.session:
+        
+
+
     return render(request, "today-appointment.html")
 
 def all_appointment(request):
