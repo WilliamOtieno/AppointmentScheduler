@@ -64,7 +64,7 @@ def create_appointment(request):
                 return redirect("core:create-appointment")
         return render(request, "appoint/create-appointment.html")
     else:
-        return HttpResponseNotFound("Page not found! Check the url.")
+        return HttpResponseNotFound("Page not found!")
 
     
         
@@ -73,10 +73,21 @@ def dashboard(request):
 
 def today_appointment(request):
     if "user" in request.session:
-        
-
-
-    return render(request, "today-appointment.html")
+        appointments = client.query(q.paginate(q.match(q.index("events_today_paginate"), request.session["user"]["username"], str(datetime.date.today()))))["data"]
+        appointments_count = len(appointments)
+        page_number = int(request.GET.get('Page', 1))
+        appointment = client.query(q.get(q.ref(q.collection("Events"), appointments[page_number - 1].id())))["data"]
+        context = {
+            "count": appointments_count,
+            "appointment": appointment,
+            "page_num": page_number,
+            "next_page": min(appointments_count, page_number + 1),
+            "prev_page": max(1, page_number - 1)
+        }
+        return render(request, "today-appointment.html")
+    else:
+        return HttpResponseNotFound("Page not found.")
+    
 
 def all_appointment(request):
     return render(request, "all-appointments.html")
